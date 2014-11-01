@@ -392,6 +392,10 @@ bool Any2Pb::readValue(unsigned long size, Message& message)
             return false;
         }
 
+		unsigned char type;
+        unsigned long size;
+    	unlikely(!readNode(type, size)) return false;
+		
         const FieldDescriptor *pFieldDescriptor = pDescriptor->FindFieldByName(name);
         if (!pFieldDescriptor)
 		{
@@ -400,13 +404,10 @@ bool Any2Pb::readValue(unsigned long size, Message& message)
 
 		if (!pFieldDescriptor)
         {
+			current += size;
         	continue;
 		}
         
-        unsigned char type;
-        unsigned long size;
-    	unlikely(!readNode(type, size)) return false;
-
         if (!(pFieldDescriptor->is_repeated()) && (Vector == type))
         {
             m_errMsg = name + " should not be a vector";
@@ -439,7 +440,7 @@ bool Any2Pb::readValue(unsigned long size, Message& message)
 
     if (!message.IsInitialized())
     {
-        m_errMsg = "missed some required field(s)";
+        m_errMsg = "missed some required field(s), " + message.InitializationErrorString();
         m_errCode = EC_MISS_REQUIRED;
         return false;
     }
